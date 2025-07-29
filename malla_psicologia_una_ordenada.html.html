@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Malla Interactiva Psicología - UNA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+      background-color: #121212;
+      color: #f0f0f0;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: #90caf9;
+      font-size: 1.6rem;
+    }
+    h2 {
+      margin-top: 1.5rem;
+      color: #81d4fa;
+      border-bottom: 1px solid #444;
+      padding-bottom: 5px;
+      font-size: 1.2rem;
+    }
+    .semestre {
+      margin-bottom: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 8px;
+    }
+    .curso {
+      display: block;
+      padding: 12px;
+      border-radius: 10px;
+      background-color: #333;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 1px solid #555;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .curso:hover {
+      background-color: #444;
+    }
+    .curso.completado {
+      text-decoration: line-through;
+      background-color: #2e7d32;
+      color: #b2fab4;
+    }
+    .curso.bloqueado {
+      background-color: #222;
+      color: #777;
+      cursor: not-allowed;
+    }
+    @media (max-width: 480px) {
+      h1 { font-size: 1.3rem; }
+      .curso { font-size: 0.85rem; padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>Malla Interactiva Psicología UNA</h1>
+  <div id="contenedor-malla"></div>
+  <script>
+    const cursos = JSON.parse(localStorage.getItem("estadoCursos_mobile") || "{}");
+    const malla = {
+      "1° semestre": ["intro", "salud", "ingles1", "gen1", "gen2"],
+      "2° semestre": ["teorias", "opt1", "gen3", "gen4", "ingles2"],
+      "3° semestre": ["modelos1", "desarrollo1", "problematizacion", "psicobio", "opt2"],
+      "4° semestre": ["modelos2", "desarrollo2", "investigacion", "psicopato_intro", "opt3"],
+      "5° semestre": ["etica", "desarrollo3", "psicopato", "recoleccion_cual", "salud_mental"],
+      "6° semestre": ["social", "psicodiag1", "recoleccion_cuant", "salud_colectiva", "aprendizaje"],
+      "7° semestre": ["subjetividad", "psicodiag2", "opt4", "grupal", "educativa1"],
+      "8° semestre": ["familia", "gestion", "laboral", "educativa2", "practica"],
+      "Lic. 1° semestre": ["intervencion_ind", "comunitaria", "intervencion_edu", "ttfg1"],
+      "Lic. 2° semestre": ["grupos", "opt5", "intervencion_fam", "diversidad", "ttfg2"]
+    };
+    const infoCursos = {
+      intro: { nombre: "Introducción a la Psicología", requisitos: [] },
+      salud: { nombre: "Salud, Educación y Sociedad", requisitos: [] },
+      ingles1: { nombre: "Inglés 1", requisitos: [] },
+      gen1: { nombre: "General 1", requisitos: [] },
+      gen2: { nombre: "General 2", requisitos: [] },
+      teorias: { nombre: "Teorías y Sistemas", requisitos: ["intro", "salud"] },
+      opt1: { nombre: "Optativo 1", requisitos: [] },
+      gen3: { nombre: "General 3", requisitos: [] },
+      gen4: { nombre: "General 4", requisitos: [] },
+      ingles2: { nombre: "Inglés 2", requisitos: [] },
+      modelos1: { nombre: "Modelos Teóricos 1", requisitos: ["teorias"] },
+      desarrollo1: { nombre: "Psico del desarrollo 1", requisitos: ["teorias"] },
+      problematizacion: { nombre: "Problematización y Fundamentación", requisitos: ["teorias"] },
+      psicobio: { nombre: "Fundamentos Psicobiológicos", requisitos: ["intro"] },
+      opt2: { nombre: "Optativo 2", requisitos: [] },
+      modelos2: { nombre: "Modelos Teóricos 2", requisitos: ["modelos1"] },
+      desarrollo2: { nombre: "Psico del desarrollo 2", requisitos: ["desarrollo1"] },
+      investigacion: { nombre: "Componentes y Estrategias de la Investigación", requisitos: ["problematizacion"] },
+      psicopato_intro: { nombre: "Introducción a la Psicopatología", requisitos: ["modelos1", "psicobio"] },
+      opt3: { nombre: "Optativo 3", requisitos: [] },
+      etica: { nombre: "Ética Profesional", requisitos: ["modelos2"] },
+      desarrollo3: { nombre: "Psico del Desarrollo 3", requisitos: ["desarrollo2"] },
+      psicopato: { nombre: "Psicopatología", requisitos: ["psicopato_intro"] },
+      recoleccion_cual: { nombre: "Herramientas recolección (cualitativa)", requisitos: ["investigacion"] },
+      salud_mental: { nombre: "Psicología de la Salud", requisitos: ["salud"] },
+      social: { nombre: "Psicología Social", requisitos: ["salud"] },
+      psicodiag1: { nombre: "Psicodiagnóstico 1", requisitos: ["salud_mental", "psicopato"] },
+      recoleccion_cuant: { nombre: "Herramientas recolección (cuantitativa)", requisitos: ["investigacion"] },
+      salud_colectiva: { nombre: "Salud Colectiva", requisitos: ["salud_mental"] },
+      aprendizaje: { nombre: "Teorías del Aprendizaje", requisitos: ["salud", "desarrollo1"] },
+      subjetividad: { nombre: "Construcción Histórica de la Subjetividad", requisitos: ["social"] },
+      psicodiag2: { nombre: "Psicodiagnóstico 2", requisitos: ["psicodiag1"] },
+      opt4: { nombre: "Optativo 4", requisitos: [] },
+      grupal: { nombre: "Psicología Grupal", requisitos: ["social"] },
+      educativa1: { nombre: "Psicología Educativa I", requisitos: ["desarrollo2", "aprendizaje"] },
+      familia: { nombre: "Psicología de la Familia", requisitos: ["modelos2"] },
+      gestion: { nombre: "Gestión de Proyectos", requisitos: ["grupal"] },
+      laboral: { nombre: "Psicología Laboral", requisitos: ["grupal"] },
+      educativa2: { nombre: "Psicología Educativa II", requisitos: ["educativa1"] },
+      practica: { nombre: "Práctica Profesional Supervisada", requisitos: ["educativa1"] },
+      intervencion_ind: { nombre: "Intervención Individual", requisitos: ["practica"] },
+      comunitaria: { nombre: "Psicología Comunitaria", requisitos: ["practica"] },
+      intervencion_edu: { nombre: "Intervención Psicoeducativa", requisitos: ["practica"] },
+      ttfg1: { nombre: "Taller Trabajo Final I", requisitos: ["practica"] },
+      grupos: { nombre: "Intervención Grupal", requisitos: ["comunitaria"] },
+      opt5: { nombre: "Optativo 5", requisitos: [] },
+      intervencion_fam: { nombre: "Intervención Pareja y Familia", requisitos: ["intervencion_ind"] },
+      diversidad: { nombre: "Diversidad Educativa", requisitos: ["intervencion_edu"] },
+      ttfg2: { nombre: "Taller Trabajo Final II", requisitos: ["ttfg1"] }
+    };
+    const contenedor = document.getElementById("contenedor-malla");
+    function puedeDesbloquear(id) {
+      const reqs = infoCursos[id].requisitos || [];
+      return reqs.every(r => cursos[r]);
+    }
+    for (const semestre in malla) {
+      const seccion = document.createElement("div");
+      const h2 = document.createElement("h2");
+      h2.textContent = semestre;
+      seccion.appendChild(h2);
+      seccion.className = "semestre";
+      malla[semestre].forEach(id => {
+        const curso = document.createElement("div");
+        curso.className = "curso";
+        curso.textContent = infoCursos[id].nombre;
+        if (cursos[id]) curso.classList.add("completado");
+        else if (!puedeDesbloquear(id) && infoCursos[id].requisitos.length > 0)
+          curso.classList.add("bloqueado");
+        curso.addEventListener("click", () => {
+          if (curso.classList.contains("bloqueado")) return;
+          cursos[id] = !cursos[id];
+          localStorage.setItem("estadoCursos_mobile", JSON.stringify(cursos));
+          location.reload();
+        });
+        seccion.appendChild(curso);
+      });
+      contenedor.appendChild(seccion);
+    }
+  </script>
+</body>
+</html>
